@@ -8,10 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
-    let sportsEmojis : [String] = ["⚽️", "🏀", "🏈", "⚾️", "🎾", "🏐", "🏉", "🎱", "🏓", "⛳️"]
+    let sportsEmojis : [String]
+    let carEmojis: [String]
+    let foodEmojis : [String]
+    let selectableThemes : [[String]]
+    
+    init() {
+        sportsEmojis = ["⚽️", "⚽️", "🏀", "🏀", "🏈", "🏈", "⚾️", "⚾️", "🎾", "🎾", "🏐", "🏐", "🏉", "🏉", "🎱", "🎱", "🏓", "🏓", "⛳️", "⛳️"]
+        carEmojis = ["🚗", "🚗", "🚕", "🚕", "🚙", "🚙", "🚌", "🚌", "🚎", "🚎", "🏎️", "🏎️", "🚓", "🚓", "🚑", "🚑", "🚒", "🚒", "🚐", "🚐", "🚚", "🚚", "🚛", "🚛", "🚜", "🚜", "🚍", "🚍", "🚘", "🚘"]
+        foodEmojis = ["🍩", "🍩", "🍪", "🍪"]
+        selectableThemes = [sportsEmojis, carEmojis, foodEmojis]
+    }
     @State var cardCount : Int = 4
+    @State var selectedTheme : Int = 1
+    
     var body: some View {
         VStack{
+            Text("Memorize").font(.largeTitle)
+            themeSelector
             ScrollView{
                 cards
             }
@@ -21,11 +35,40 @@ struct ContentView: View {
         .padding()
     }
     
+    var themeSelector : some View {
+        HStack{
+            Text("Select Theme: ")
+                .font(.title2)
+            ForEach(0..<selectableThemes.count, id: \.self) { themeIdx in
+                themeButton(idx: themeIdx)
+            }
+        }
+    }
+    func themeButton(idx: Int) -> some View {
+        Button(action: {
+            selectedTheme = idx
+            if cardCount > selectableThemes[idx].count {
+                cardCount = selectableThemes[idx].count
+            }
+            
+        }, label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(lineWidth: 2)
+                Text(selectableThemes[idx].first!)
+                
+            }
+            .frame(width: 50, height: 50)
+            
+        })
+    }
+    
+    
     var cards : some View {
         
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))]) {
             ForEach (0..<cardCount, id: \.self) { idx in
-                CardView(content: sportsEmojis[idx], isFaceUp: false)
+                CardView(content: selectableThemes[selectedTheme][idx], isFaceUp: false)
                     .aspectRatio(2/3,contentMode: .fit)
             }
         }
@@ -47,13 +90,11 @@ struct ContentView: View {
         }, label: {
             Image(systemName: symbol)
         })
-        .disabled(cardCount+offset < 1 || cardCount+offset > sportsEmojis.count)
+        .disabled(cardCount+offset < 1 || cardCount+offset > selectableThemes[selectedTheme].count)
     }
-    
     var cardRemover : some View {
         cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus.fill")
     }
-    
     var cardAdder : some View {
         cardCountAdjuster(by: 1, symbol: "rectangle.stack.badge.plus.fill")
     }
