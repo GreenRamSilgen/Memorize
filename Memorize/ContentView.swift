@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    let sportsEmojis : [String] = ["⚽️", "🏀", "🏈", "⚾️", "🎾", "🏐", "🏉", "🎱", "🏓", "⛳️"]
+    
     var body: some View {
         HStack {
-            CardView(isFaceUp: true)
-            CardView()
-            CardView()
-            CardView()
+            ForEach (0..<4, id: \.self) { idx in
+                CardView(content: sportsEmojis[idx], isFaceUp: false)
+            }
         }
         .foregroundColor(.orange)
         .imageScale(.small)
@@ -22,6 +23,7 @@ struct ContentView: View {
 }
 
 struct CardView : View {
+    let content : String
     @State var isFaceUp: Bool = false
     var body: some View {
         ZStack {
@@ -29,7 +31,7 @@ struct CardView : View {
             if isFaceUp {
                 base.foregroundColor(.white)
                 base.strokeBorder(lineWidth: 2)
-                Text("👻")
+                Text(content)
                     .font(.largeTitle)
             } else {
                 base
