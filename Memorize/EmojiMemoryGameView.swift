@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  EmojiMemoryGameView.swift
 //  Memorize
 //
 //  Created by Kiran Shrestha on 11/5/24.
@@ -8,115 +8,61 @@
 import SwiftUI
 
 struct EmojiMemoryGameView: View {
-    var viewModel: EmojiMemoryGame
-    let sportsEmojis : [String]
-    let carEmojis: [String]
-    let foodEmojis : [String]
-    let selectableThemes : [([String],String,Color)]
-    let themeNames : [String] = ["Sports", "Cars", "Food"]
-    
-    init() {
-        sportsEmojis = ["⚽️", "⚽️", "🏀", "🏀", "🏈", "🏈", "⚾️", "⚾️", "🎾", "🎾", "🏐", "🏐", "🏉", "🏉", "🎱", "🎱", "🏓", "🏓", "⛳️", "⛳️"]
-        carEmojis = ["🚗", "🚗", "🚕", "🚕", "🚙", "🚙", "🚌", "🚌", "🚎", "🚎", "🏎️", "🏎️", "🚓", "🚓", "🚑", "🚑", "🚒", "🚒", "🚐", "🚐", "🚚", "🚚", "🚛", "🚛", "🚜", "🚜", "🚍", "🚍", "🚘", "🚘"]
-        foodEmojis = ["🍩", "🍩", "🍪", "🍪"]
-        selectableThemes = [(sportsEmojis, "Sports", Color.orange), (carEmojis, "Cars", Color.blue), (foodEmojis, "Food", Color.green)]
-    }
-    @State var cardCount : Int = 0
-    @State var selectedTheme : Int = -1
-    @State var currentUsedTheme : [String] = ["⚽️", "🚗", "🍩", "⚽️"]
-    @State var currentColor : Color = .orange
+    @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
         VStack{
-            Text("Memorize").font(.largeTitle)
-            
             ScrollView{
                 cards
+                    .animation(.default, value: viewModel.cards)
             }
-            Spacer()
-            themeSelector
-                .font(.subheadline)
+            Button("Shuffle") {
+                viewModel.shuffle()
+            }
         }
-        .foregroundStyle(selectedTheme == -1 ? .purple : currentColor)
         .padding()
     }
     
-    var themeSelector : some View {
-        HStack{
-            ForEach(0..<selectableThemes.count, id: \.self) { themeIdx in
-                themeButton(idx: themeIdx)
+    var cards : some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 0)], spacing: 0) {
+            ForEach (viewModel.cards) { card in
+                CardView(card)
+                    .aspectRatio(2/3,contentMode: .fit)
+                    .padding(4)
+                    .onTapGesture {
+                        viewModel.choose(card: card)
+                    }
             }
         }
-    }
-    func themeButton(idx: Int) -> some View {
-        Button(action: {
-            selectedTheme = idx
-            cardCount = Array(stride(from: 2, to: selectableThemes[idx].0.count+1, by: 2)).randomElement()!
-            currentUsedTheme = selectableThemes[idx].0.shuffled()
-            currentColor = selectableThemes[idx].2
-            print(cardCount)
-        }, label: {
-            if selectedTheme == idx {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill()
-                    VStack{
-                        Text(selectableThemes[idx].0.first!)
-                        Text(selectableThemes[idx].1)
-                    }
-                    .foregroundStyle(.white)
-                }
-                .frame(width: 50, height: 50)
-            }else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(lineWidth: 2)
-                    VStack{
-                        Text(selectableThemes[idx].0.first!)
-                        Text(selectableThemes[idx].1)
-                    }
-                }
-                .frame(width: 50, height: 50)
-            }
-            
-        })
-    }
-    
-    
-    var cards : some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: CGFloat(cardCount <= 4 ? 100 : 150/(cardCount/6))))]) {
-                ForEach (0..<cardCount, id: \.self) { idx in
-                    CardView(content: currentUsedTheme[idx], isFaceUp: false)
-                        .aspectRatio(2/3,contentMode: .fit)
-                }
-            }
-            .foregroundColor(currentColor)
+        .foregroundColor(.orange)
         
         
     }
 }
 
 struct CardView : View {
-    let content : String
-    @State var isFaceUp: Bool = false
+    let card : MemoryGame<String>.Card
+    init(_ card: MemoryGame<String>.Card) {
+        self.card = card
+    }
     var body: some View {
         ZStack {
             let base : RoundedRectangle = RoundedRectangle(cornerRadius: 12)
             Group {
                 base.foregroundColor(.white)
                 base.strokeBorder(lineWidth: 2)
-                Text(content)
-                    .font(.largeTitle)
+                Text(card.content)
+                    .font(.system(size: 140))
+                    .minimumScaleFactor(0.01)
+                    .aspectRatio(1, contentMode: .fit)
             }
-            .opacity(isFaceUp ? 1 : 0)
-            base.fill().opacity(isFaceUp ? 0 : 1)
+            .opacity(card.isFaceUp ? 1 : 0)
+            base.fill().opacity(card.isFaceUp ? 0 : 1)
         }
-        .onTapGesture {
-            isFaceUp.toggle()
-        }
+        .opacity(card.isFaceUp || !card.isMatched ? 1 : 0)
     }
 }
 
 #Preview {
-    EmojiMemoryGameView()
+    EmojiMemoryGameView(viewModel: EmojiMemoryGame())
 }
