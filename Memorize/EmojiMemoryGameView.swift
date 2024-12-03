@@ -16,8 +16,15 @@ struct EmojiMemoryGameView: View {
                 cards
                     .animation(.default, value: viewModel.cards)
             }
-            Button("Shuffle") {
-                viewModel.shuffle()
+            
+            HStack {
+                Button("New Game") {
+                    viewModel.newGame()
+                }
+                
+                Button("Shuffle") {
+                    viewModel.shuffle()
+                }
             }
         }
         .padding()
@@ -34,7 +41,7 @@ struct EmojiMemoryGameView: View {
                     }
             }
         }
-        .foregroundColor(.orange)
+        .foregroundColor(viewModel.theme.getCurrentThemeColor())
         
         
     }

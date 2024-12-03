@@ -18,12 +18,16 @@ struct MemoryGame<CardContent> where CardContent : Equatable {
         }
     }
     
-    init(numberOfParisOfCards: Int, cardContentFactory : (Int) -> CardContent) {
+    init(maxEmojiInTheme: Int, numberOfParisOfCards: Int, cardContentFactory : (Int) -> CardContent) {
         cards = []
-        for pairIndex in 0..<max(2,numberOfParisOfCards) {
+        let startingRange = Int.random(in: 0...maxEmojiInTheme-numberOfParisOfCards)
+        let endRange = startingRange + numberOfParisOfCards
+        
+        for pairIndex in startingRange..<max(2,endRange) {
             cards.append(Card(content: cardContentFactory(pairIndex), id: "\(pairIndex)a"))
             cards.append(Card(content: cardContentFactory(pairIndex), id: "\(pairIndex)b"))
         }
+        shuffle()
     }
     
     mutating func choose(_ card: Card) {
