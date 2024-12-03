@@ -9,12 +9,26 @@ import Foundation
 
 struct MemoryGame<CardContent> where CardContent : Equatable {
     private(set) var cards : [Card]
+    private(set) var score: Int = 0
+    
     var indexOfTheOneAndOnlyFaceUpCard: Int? {
         get {
             return cards.indices.filter{ cards[$0].isFaceUp }.only
         }
         set {
-            cards.indices.forEach { cards[$0].isFaceUp = (newValue == $0)}
+            cards.indices.forEach {
+                if($0 == newValue) {
+                    print("INDEX: \($0) isFaceUp: \(cards[$0].isFaceUp)")
+                    print("newValue: \(newValue?.description ?? "nil")")
+                    print("newValue == $0: \(newValue == $0)")
+                    print("INDEX: \($0) isFaceUp: \(cards[$0].isFaceUp)... RESULT")
+                }
+
+                cards[$0].isFaceUp = (newValue == $0)
+                if($0 == newValue) {
+                    print("INDEX: \($0) isFaceUp: \(cards[$0].isFaceUp)... RESULT")
+                }
+            }
         }
     }
     
@@ -31,22 +45,39 @@ struct MemoryGame<CardContent> where CardContent : Equatable {
     }
     
     mutating func choose(_ card: Card) {
+        print(card.debugDescription)
         if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }) {
             if !cards[chosenIndex].isFaceUp  && !cards[chosenIndex].isMatched {
                 if let potentialMatchIndex = indexOfTheOneAndOnlyFaceUpCard {
+                    print("Checking for potential match now.")
                     if cards[potentialMatchIndex].content == cards[chosenIndex].content {
                         cards[potentialMatchIndex].isMatched = true
                         cards[chosenIndex].isMatched = true
-                        self.indexOfTheOneAndOnlyFaceUpCard = nil
+                        score += 2
+                    }else {
+                        if cards[potentialMatchIndex].hasBeenSeen {
+                            score -= 1
+                            print("Lose point because of POTENTIAL MATCH \(cards[potentialMatchIndex].debugDescription)")
+                        }else {
+                            cards[potentialMatchIndex].hasBeenSeen = true
+                        }
+                        if cards[chosenIndex].hasBeenSeen {
+                            score -= 1
+                            print("Lose point because of CHOOSEN \(cards[chosenIndex].debugDescription)")
+                        }else {
+                            cards[chosenIndex].hasBeenSeen = true
+                        }
                     }
                 } else {
                     indexOfTheOneAndOnlyFaceUpCard = chosenIndex
+                    print("Set the face up card.")
                 }
                 cards[chosenIndex].isFaceUp = true
             }
             
 
         }
+        print(card.debugDescription)
     }
     
     mutating func shuffle() {
@@ -57,6 +88,7 @@ struct MemoryGame<CardContent> where CardContent : Equatable {
     struct Card : Equatable, Identifiable, CustomDebugStringConvertible {
         var isFaceUp: Bool = false
         var isMatched: Bool = false
+        var hasBeenSeen: Bool = false
         let content: CardContent
         var id: String
         var debugDescription: String {

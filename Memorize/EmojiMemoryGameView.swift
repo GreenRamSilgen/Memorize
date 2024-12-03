@@ -15,6 +15,8 @@ struct EmojiMemoryGameView: View {
             HStack {
                 Text(viewModel.theme.name)
                     .font(.title)
+                Spacer()
+                Text("Score: \(viewModel.score)")
             }
             ScrollView{
                 cards

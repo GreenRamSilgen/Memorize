@@ -28,6 +28,9 @@ class EmojiMemoryGame : ObservableObject {
     var theme : ThemeManager.Theme {
         themeModel.currentTheme
     }
+    var score : Int {
+        model.score
+    }
     
     func newGame() {
         themeModel.changeToRandomTheme()
